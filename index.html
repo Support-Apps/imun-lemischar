@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoldMind — מנתח מסחר בזהב</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-pale: #F5E6BC;
+    --pink: #FFC8DD;
+    --pink-deep: #E8A0BC;
+    --bg: #FFFDF9;
+    --bg-mid: #FFF5E6;
+    --fg: #2D1F0A;
+    --fg-soft: #7A5A1A;
+    --fg-mute: #8A6A2A;
+    --border: rgba(201,168,76,0.35);
+    --input-bg: rgba(255,255,255,0.9);
+    --news-bg: rgba(255,245,230,0.6);
+    --shadow: rgba(180,130,50,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    direction: rtl;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: var(--bg);
+    border-bottom: 1px solid var(--gold);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: background 0.3s;
+  }
+
+  .logo {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px rgba(201,168,76,0.4);
+  }
+
+  .logo span { color: var(--pink); }
+
+  .bsd {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    color: var(--fg-soft);
+    font-style: italic;
+  }
+
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+
+  .gold-price-badge {
+    background: var(--bg-mid);
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--fg-soft);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .gold-price-badge:hover { background: var(--gold); color: var(--bg); }
+
+  .theme-toggle {
+    background: var(--bg-mid);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--fg);
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .theme-toggle:hover { border-color: var(--gold); }
+
+  /* ===== NAV TABS ===== */
+  .nav-tabs {
+    display: flex;
+    background: var(--bg-mid);
+    border-bottom: 1px solid rgba(201,168,76,0.3);
+    overflow-x: auto;
+    padding: 0 16px;
+    gap: 4px;
+    transition: background 0.3s;
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--fg-mute);
+    font-family: 'Heebo', sans-serif;
+    font-size: 13px;
+    padding: 14px 18px;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab-btn:hover { color: var(--fg-soft); }
+  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* ===== MAIN LAYOUT ===== */
+  .main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ===== SECTION CARDS ===== */
+  .card {
+    background: var(--bg-mid);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: background 0.3s;
+  }
+
+  .card-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 14px;
+    color: var(--gold);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 1px;
+  }
+  .card-title .icon { font-size: 18px; }
+
+  /* ===== PDF UPLOAD ===== */
+  .upload-zone {
+    border: 2px dashed rgba(201,168,76,0.4);
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: rgba(201,168,76,0.03);
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.07);
+  }
+  .upload-zone .upload-icon { font-size: 48px; margin-bottom: 12px; }
+  .upload-zone p { color: var(--fg-soft); font-size: 15px; margin-bottom: 6px; }
+  .upload-zone small { color: var(--fg-mute); font-size: 12px; }
+  #pdf-input { display: none; }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    background: var(--gold);
+    color: var(--bg);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-family: 'Heebo', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-outline { background: none; border: 1px solid var(--gold); color: var(--gold); }
+  .btn-outline:hover { background: rgba(201,168,76,0.1); }
+  .btn-pink { background: var(--pink); color: var(--bg); }
+  .btn-pink:hover { background: var(--pink-deep); }
+
+  /* ===== AI RESPONSE ===== */
+  .ai-response {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 16px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--fg);
+    white-space: pre-wrap;
+    display: none;
+    min-height: 80px;
+  }
+  .ai-response.visible { display: block; }
+
+  .loading { display: flex; align-items: center; gap: 10px; color: var(--fg-soft); padding: 16px 0; }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid rgba(201,168,76,0.3);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== INDICATORS GRID ===== */
+  .indicators-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .indicator-chip {
+    background: rgba(201,168,76,0.08);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+    cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .indicator-chip:hover { border-color: var(--gold); background: rgba(201,168,76,0.15); }
+  .indicator-chip.selected { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+  .indicator-chip .ic-name { font-size: 12px; font-weight: 700; }
+  .indicator-chip .ic-desc { font-size: 10px; opacity: 0.7; margin-top: 2px; }
+
+  /* ===== CANDLES GRID ===== */
+  .candles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .candle-chip {
+    background: rgba(255,200,221,0.06);
+    border: 1px solid rgba(255,200,221,0.2);
+    border-radius: 8px; padding: 12px;
+    cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .candle-chip:hover { border-color: var(--pink); background: rgba(255,200,221,0.12); }
+  .candle-chip.selected { background: var(--pink); color: var(--bg); border-color: var(--pink); }
+  .candle-chip .cc-emoji { font-size: 22px; margin-bottom: 4px; }
+  .candle-chip .cc-name { font-size: 12px; font-weight: 700; }
+  .candle-chip .cc-signal { font-size: 10px; margin-top: 2px; opacity: 0.75; }
+
+  /* ===== PROFIT CALCULATOR ===== */
+  .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .input-group { display: flex; flex-direction: column; gap: 6px; }
+  .input-group label { font-size: 12px; color: var(--fg-soft); font-weight: 500; }
+  .input-group input, .input-group select {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--fg);
+    font-family: 'Heebo', sans-serif;
+    font-size: 14px;
+    direction: ltr; text-align: right;
+    transition: border-color 0.2s; width: 100%;
+  }
+  .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--gold); }
+
+  .profit-result {
+    background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05));
+    border: 1px solid var(--gold);
+    border-radius: 12px; padding: 20px;
+    text-align: center; margin-top: 12px; display: none;
+  }
+  .profit-result.visible { display: block; }
+  .profit-result .pct { font-size: 42px; font-family: 'Cormorant Garamond', serif; color: var(--gold); font-weight: 600; }
+  .profit-result .pct.negative { color: #FF6B6B; }
+  .profit-result .label { font-size: 12px; color: var(--fg-soft); margin-top: 4px; }
+  .profit-result .details { margin-top: 12px; font-size: 12px; color: var(--fg-mute); }
+  .profit-result .detail-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(201,168,76,0.1); }
+
+  /* ===== NEWS ITEMS ===== */
+  .news-item {
+    background: var(--news-bg);
+    border-right: 3px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 14px; margin-bottom: 8px;
+    transition: background 0.2s;
+  }
+  .news-item:hover { background: rgba(201,168,76,0.08); }
+  .news-item a { text-decoration: none; }
+  .news-item .news-headline { font-size: 13px; font-weight: 600; color: var(--fg); margin-bottom: 4px; line-height: 1.4; }
+  .news-item .news-meta { font-size: 11px; color: var(--fg-mute); display: flex; gap: 10px; align-items: center; }
+  .news-item .news-source { color: var(--gold); font-weight: 700; }
+  .news-item .news-link { color: var(--fg-soft); }
+  .news-item .news-link:hover { color: var(--gold); }
+
+  /* ===== FILE LIST ===== */
+  .file-list { margin-top: 12px; }
+  .file-item {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(201,168,76,0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; font-size: 13px;
+  }
+  .file-item .file-icon { color: var(--gold); font-size: 18px; }
+  .file-item .file-name { flex: 1; color: var(--fg); }
+  .file-item .file-size { color: var(--fg-mute); font-size: 11px; }
+  .file-item .remove-btn { background: none; border: none; color: #FF6B6B; cursor: pointer; font-size: 14px; }
+
+  /* ===== ANALYSIS SECTIONS ===== */
+  .analysis-section { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; }
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); font-weight: 700; margin-bottom: 10px; }
+
+  /* ===== SIGNAL BADGE ===== */
+  .signal-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+  .signal-buy { background: rgba(76,201,76,0.15); color: #4CC44C; border: 1px solid rgba(76,201,76,0.3); }
+  .signal-sell { background: rgba(255,107,107,0.15); color: #FF6B6B; border: 1px solid rgba(255,107,107,0.3); }
+  .signal-wait { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+
+  /* ===== TF SELECTOR ===== */
+  .tf-selector { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tf-btn {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 12px;
+    color: var(--fg-mute);
+    font-family: 'Heebo', sans-serif; font-size: 12px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .tf-btn:hover { border-color: var(--gold); color: var(--fg-soft); }
+  .tf-btn.active { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 700; }
+
+  /* ===== TEXTAREA ===== */
+  .ai-input {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+    color: var(--fg);
+    font-family: 'Heebo', sans-serif; font-size: 14px;
+    width: 100%; resize: vertical; min-height: 80px;
+    transition: border-color 0.2s; direction: rtl;
+  }
+  .ai-input:focus { outline: none; border-color: var(--gold); }
+
+  /* ===== DIVIDER ===== */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* ===== HIGHLIGHT BOX ===== */
+  .highlight-box {
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;
+    font-size: 13px; color: var(--fg); line-height: 1.7;
+  }
+
+  /* ===== GRID 2 ===== */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } .calc-row { grid-template-columns: 1fr; } }
+
+  /* ===== INDICATOR INPUT BLOCKS ===== */
+  .ind-block {
+    background: rgba(201,168,76,0.05);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    animation: fadeUp 0.25s ease;
+  }
+  .ind-block-title {
+    font-size: 12px; font-weight: 700; color: var(--gold);
+    letter-spacing: 1px; margin-bottom: 10px;
+  }
+
+  /* ===== TREND / STATE BUTTONS ===== */
+  .trend-btn, .state-btn {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 11px;
+    color: var(--fg-mute);
+    font-family: 'Heebo', sans-serif; font-size: 12px;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .trend-btn:hover, .state-btn:hover { border-color: var(--gold); color: var(--fg); }
+  .trend-btn.active, .state-btn.active { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 700; }
+
+  /* ===== FACTOR CHECK ===== */
+  .factor-check {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--cream); cursor: pointer;
+    padding: 6px 10px; border-radius: 6px; transition: background 0.15s;
+  }
+  .factor-check:hover { background: rgba(201,168,76,0.08); }
+  .factor-check input { accent-color: var(--gold); width:15px; height:15px; }
+
+  /* ===== TOPIC BUTTONS ===== */
+  .topic-btn {
+    background: rgba(255,200,221,0.06);
+    border: 1px solid rgba(255,200,221,0.2);
+    border-radius: 8px; padding: 10px 12px;
+    color: var(--cream); font-family: 'Heebo', sans-serif;
+    font-size: 12px; cursor: pointer; transition: all 0.2s;
+    text-align: right; width: 100%;
+  }
+  .topic-btn:hover { border-color: var(--pink); background: rgba(255,200,221,0.12); color: var(--pink); }
+
+  /* ===== COACH MESSAGES ===== */
+  .coach-msg-ai, .coach-msg-user {
+    border-radius: 10px; padding: 12px 14px;
+    margin-bottom: 10px; font-size: 13px; line-height: 1.75;
+  }
+  .coach-msg-ai { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); color: var(--fg); }
+  .coach-msg-user { background: rgba(255,200,221,0.08); border: 1px solid rgba(255,200,221,0.2); color: var(--fg); }
+  .msg-label { font-size: 11px; font-weight: 700; margin-bottom: 6px; }
+  .coach-msg-ai .msg-label { color: var(--gold); }
+  .coach-msg-user .msg-label { color: var(--pink); }
+
+  /* ===== RULE RESULT ===== */
+  .rule-pass { color: #4CC44C; }
+  .rule-fail { color: #FF6B6B; }
+  .rule-warn { color: var(--gold); }
+  .rule-row { display:flex; align-items:flex-start; gap:8px; padding:5px 0; border-bottom:1px solid rgba(201,168,76,0.1); font-size:13px; }
+  .score-bar { height:8px; border-radius:4px; margin-top:10px; background: rgba(0,0,0,0.3); overflow:hidden; }
+  .score-fill { height:100%; border-radius:4px; transition: width 0.6s ease; }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+
+  /* ===== FADE IN ===== */
+  @keyframes fadeUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: none; } }
+  .fade-up { animation: fadeUp 0.4s ease forwards; }
+
+  /* tags in AI response */
+  .tag-buy { color: #4CC44C; font-weight: 700; }
+  .tag-sell { color: #FF6B6B; font-weight: 700; }
+  .tag-warn { color: var(--gold); font-weight: 700; }
+
+  .gold-dot { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; display: inline-block; margin-left: 6px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="bsd">בס״ד</div>
+  <div class="logo">Gold<span>Mind</span></div>
+  <div class="header-actions">
+    <div class="gold-price-badge" onclick="fetchGoldPrice()" id="price-badge">⟳ מחיר זהב חי</div>
+  </div>
+</div>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <button class="tab-btn active" onclick="switchTab('pdf')">📄 ניתוח PDF</button>
+  <button class="tab-btn" onclick="switchTab('candles')">🕯️ נרות ואינדיקטורים</button>
+  <button class="tab-btn" onclick="switchTab('profit')">💰 מחשבון רווח</button>
+  <button class="tab-btn" onclick="switchTab('news')">📰 חדשות & המלצות</button>
+  <button class="tab-btn" onclick="switchTab('coach')">🧠 מאמן מסחר</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ===== TAB 1: PDF ANALYSIS ===== -->
+  <div class="tab-panel active fade-up" id="tab-pdf">
+    <div class="card">
+      <div class="card-title"><span class="icon">📄</span> העלאת דו"חות מסחר</div>
+
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('pdf-input').click()"
+           ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <div class="upload-icon">📂</div>
+        <p>גרור PDF לכאן או לחץ להעלאה</p>
+        <small>ניתוח עסקאות, היסטוריית מסחר, הסכמי ברוקר — כל PDF קשור לזהב</small>
+      </div>
+      <input type="file" id="pdf-input" accept=".pdf" multiple onchange="handleFiles(event)">
+      <div class="file-list" id="file-list"></div>
+    </div>
+
+    <div class="card" id="analysis-options" style="display:none">
+      <div class="card-title"><span class="icon">🔍</span> סוג ניתוח</div>
+      <div class="indicators-grid">
+        <div class="indicator-chip selected" onclick="toggleAnalysisType(this,'failures')">
+          <div class="ic-name">❌ כשלים</div>
+          <div class="ic-desc">מה השתבש</div>
+        </div>
+        <div class="indicator-chip selected" onclick="toggleAnalysisType(this,'improvements')">
+          <div class="ic-name">✅ שיפורים</div>
+          <div class="ic-desc">מה לשנות</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleAnalysisType(this,'psychology')">
+          <div class="ic-name">🧠 פסיכולוגיה</div>
+          <div class="ic-desc">דפוסי חשיבה</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleAnalysisType(this,'risk')">
+          <div class="ic-name">⚠️ ניהול סיכון</div>
+          <div class="ic-desc">חשיפה ו-SL</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleAnalysisType(this,'timing')">
+          <div class="ic-name">⏰ תזמון</div>
+          <div class="ic-desc">כניסה ויציאה</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleAnalysisType(this,'pattern')">
+          <div class="ic-name">📊 דפוסים</div>
+          <div class="ic-desc">מגמות חוזרות</div>
+        </div>
+      </div>
+
+      <div class="input-group" style="margin-bottom:14px;">
+        <label>הוסף הקשר (אופציונלי)</label>
+        <textarea class="ai-input" id="pdf-context" placeholder="לדוגמה: אסטרטגיית הפריצה שלי, ב-XAU/USD, H4..." rows="3"></textarea>
+      </div>
+
+      <button class="btn" onclick="analyzePDF()" id="analyze-btn">🔍 נתח עם AI</button>
+    </div>
+
+    <div id="pdf-loading" style="display:none">
+      <div class="loading"><div class="spinner"></div>מנתח את הדוח שלך...</div>
+    </div>
+
+    <div class="ai-response" id="pdf-result"></div>
+  </div>
+
+  <!-- ===== TAB 2: CANDLES & INDICATORS ===== -->
+  <div class="tab-panel fade-up" id="tab-candles">
+    <div class="card">
+      <div class="card-title"><span class="icon">🕯️</span> זיהוי דפוסי נרות יפניים</div>
+
+      <div class="candles-grid">
+        <div class="candle-chip" onclick="toggleCandle(this,'doji')">
+          <div class="cc-emoji">➕</div>
+          <div class="cc-name">Doji</div>
+          <div class="cc-signal">היסוס / היפוך</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'hanging_man')">
+          <div class="cc-emoji">🪝</div>
+          <div class="cc-name">Hanging Man</div>
+          <div class="cc-signal">ירידה אפשרית</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'hammer')">
+          <div class="cc-emoji">🔨</div>
+          <div class="cc-name">Hammer</div>
+          <div class="cc-signal">עלייה אפשרית</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'shooting_star')">
+          <div class="cc-emoji">⭐</div>
+          <div class="cc-name">Shooting Star</div>
+          <div class="cc-signal">ירידה חזקה</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'engulfing_bull')">
+          <div class="cc-emoji">📈</div>
+          <div class="cc-name">Bullish Engulfing</div>
+          <div class="cc-signal">בליעה עולה</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'engulfing_bear')">
+          <div class="cc-emoji">📉</div>
+          <div class="cc-name">Bearish Engulfing</div>
+          <div class="cc-signal">בליעה יורדת</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'morning_star')">
+          <div class="cc-emoji">🌅</div>
+          <div class="cc-name">Morning Star</div>
+          <div class="cc-signal">התהפכות עולה</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'evening_star')">
+          <div class="cc-emoji">🌆</div>
+          <div class="cc-name">Evening Star</div>
+          <div class="cc-signal">התהפכות יורדת</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'pin_bar')">
+          <div class="cc-emoji">📌</div>
+          <div class="cc-name">Pin Bar</div>
+          <div class="cc-signal">דחיית מחיר</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'inside_bar')">
+          <div class="cc-emoji">📦</div>
+          <div class="cc-name">Inside Bar</div>
+          <div class="cc-signal">התמשכות / פריצה</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'three_soldiers')">
+          <div class="cc-emoji">⚔️</div>
+          <div class="cc-name">Three Soldiers</div>
+          <div class="cc-signal">מגמה עולה חזקה</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'three_crows')">
+          <div class="cc-emoji">🦅</div>
+          <div class="cc-name">Three Black Crows</div>
+          <div class="cc-signal">מגמה יורדת חזקה</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'marubozu')">
+          <div class="cc-emoji">▬</div>
+          <div class="cc-name">Marubozu</div>
+          <div class="cc-signal">מומנטום מלא</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'tweezer')">
+          <div class="cc-emoji">🔧</div>
+          <div class="cc-name">Tweezer Tops/Bottoms</div>
+          <div class="cc-signal">דאבל טופ/בוטום</div>
+        </div>
+        <div class="candle-chip" onclick="toggleCandle(this,'harami')">
+          <div class="cc-emoji">🤰</div>
+          <div class="cc-name">Harami</div>
+          <div class="cc-signal">היסוס בתוך נר</div>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="card-title"><span class="icon">📊</span> אינדיקטורים טכניים</div>
+
+      <div class="indicators-grid">
+        <div class="indicator-chip" onclick="toggleIndicator(this,'rsi')">
+          <div class="ic-name">RSI</div>
+          <div class="ic-desc">כוח יחסי</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleIndicator(this,'macd')">
+          <div class="ic-name">MACD</div>
+          <div class="ic-desc">מומנטום מגמה</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleIndicator(this,'ema')">
+          <div class="ic-name">EMA</div>
+          <div class="ic-desc">ממוצע נע</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleIndicator(this,'bollinger')">
+          <div class="ic-name">Bollinger Bands</div>
+          <div class="ic-desc">תנודתיות</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleIndicator(this,'fibonacci')">
+          <div class="ic-name">Fibonacci</div>
+          <div class="ic-desc">רמות תמיכה</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleIndicator(this,'support_resistance')">
+          <div class="ic-name">S&R Levels</div>
+          <div class="ic-desc">תמיכה/התנגדות</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleIndicator(this,'volume')">
+          <div class="ic-name">Volume</div>
+          <div class="ic-desc">נפח מסחר</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleIndicator(this,'stochastic')">
+          <div class="ic-name">Stochastic</div>
+          <div class="ic-desc">קנייה/מכירה</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleIndicator(this,'atr')">
+          <div class="ic-name">ATR</div>
+          <div class="ic-desc">טווח תנודה</div>
+        </div>
+        <div class="indicator-chip" onclick="toggleIndicator(this,'ichimoku')">
+          <div class="ic-name">Ichimoku</div>
+          <div class="ic-desc">ענן יפני</div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="tf-selector">
+        <div class="card-title" style="margin-bottom:0;margin-left:10px;">טיים-פריים:</div>
+        <button class="tf-btn" onclick="setTF(this,'M1')">M1</button>
+        <button class="tf-btn" onclick="setTF(this,'M5')">M5</button>
+        <button class="tf-btn" onclick="setTF(this,'M15')">M15</button>
+        <button class="tf-btn" onclick="setTF(this,'M30')">M30</button>
+        <button class="tf-btn active" onclick="setTF(this,'H1')">H1</button>
+        <button class="tf-btn" onclick="setTF(this,'H4')">H4</button>
+        <button class="tf-btn" onclick="setTF(this,'D1')">D1</button>
+        <button class="tf-btn" onclick="setTF(this,'W1')">W1</button>
+      </div>
+
+      <hr class="divider">
+      <div class="section-label">📊 הכנס נתוני גרף</div>
+
+      <!-- ROW 1: price + trend -->
+      <div class="calc-row" style="margin-bottom:12px;">
+        <div class="input-group">
+          <label>💵 מחיר נוכחי XAU/USD</label>
+          <input type="number" id="ind-price" class="ai-input" placeholder="2350" style="min-height:auto;padding:8px 12px;">
+        </div>
+        <div class="input-group">
+          <label>📈 כיוון מגמה ראשית</label>
+          <div style="display:flex;gap:6px;margin-top:2px;">
+            <button class="trend-btn active" onclick="setTrend(this,'up')">⬆️ עלייה</button>
+            <button class="trend-btn" onclick="setTrend(this,'down')">⬇️ ירידה</button>
+            <button class="trend-btn" onclick="setTrend(this,'range')">↔️ Range</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RSI -->
+      <div class="ind-block" id="ind-rsi-block" style="display:none;">
+        <div class="ind-block-title">📊 RSI</div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div class="input-group" style="max-width:120px;">
+            <label>ערך RSI (0-100)</label>
+            <input type="number" id="ind-rsi-val" class="ai-input" placeholder="65" min="0" max="100" style="min-height:auto;padding:8px 12px;">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--fg-mute);margin-bottom:4px;">מצב</div>
+            <div style="display:flex;gap:6px;">
+              <button class="state-btn active" onclick="setState(this,'rsi-state','bull')">📈 עולה</button>
+              <button class="state-btn" onclick="setState(this,'rsi-state','bear')">📉 יורד</button>
+              <button class="state-btn" onclick="setState(this,'rsi-state','ob')">🔴 Overbought</button>
+              <button class="state-btn" onclick="setState(this,'rsi-state','os')">🟢 Oversold</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MACD -->
+      <div class="ind-block" id="ind-macd-block" style="display:none;">
+        <div class="ind-block-title">📊 MACD</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="state-btn active" onclick="setState(this,'macd-state','positive')">🟢 חיובי (מעל אפס)</button>
+          <button class="state-btn" onclick="setState(this,'macd-state','negative')">🔴 שלילי (מתחת אפס)</button>
+          <button class="state-btn" onclick="setState(this,'macd-state','cross-bull')">⬆️ חצה כלפי מעלה</button>
+          <button class="state-btn" onclick="setState(this,'macd-state','cross-bear')">⬇️ חצה כלפי מטה</button>
+          <button class="state-btn" onclick="setState(this,'macd-state','diverge-bull')">📐 Divergence עולה</button>
+          <button class="state-btn" onclick="setState(this,'macd-state','diverge-bear')">📐 Divergence יורד</button>
+        </div>
+      </div>
+
+      <!-- EMA -->
+      <div class="ind-block" id="ind-ema-block" style="display:none;">
+        <div class="ind-block-title">📊 EMA</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+          <button class="state-btn active" onclick="setState(this,'ema-pos','above')">⬆️ מחיר מעל EMA</button>
+          <button class="state-btn" onclick="setState(this,'ema-pos','below')">⬇️ מחיר מתחת EMA</button>
+          <button class="state-btn" onclick="setState(this,'ema-pos','cross-bull')">🔼 חצה מעלה (Golden)</button>
+          <button class="state-btn" onclick="setState(this,'ema-pos','cross-bear')">🔽 חצה מטה (Death)</button>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div class="input-group" style="max-width:110px;">
+            <label>EMA מהיר</label>
+            <input type="number" id="ind-ema-fast" class="ai-input" placeholder="20" style="min-height:auto;padding:8px 12px;">
+          </div>
+          <div class="input-group" style="max-width:110px;">
+            <label>EMA איטי</label>
+            <input type="number" id="ind-ema-slow" class="ai-input" placeholder="50" style="min-height:auto;padding:8px 12px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- BOLLINGER -->
+      <div class="ind-block" id="ind-bollinger-block" style="display:none;">
+        <div class="ind-block-title">📊 Bollinger Bands</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="state-btn active" onclick="setState(this,'bb-state','upper')">🔴 נגע בפס עליון</button>
+          <button class="state-btn" onclick="setState(this,'bb-state','lower')">🟢 נגע בפס תחתון</button>
+          <button class="state-btn" onclick="setState(this,'bb-state','squeeze')">🤏 Squeeze (צר)</button>
+          <button class="state-btn" onclick="setState(this,'bb-state','expansion')">💥 התרחבות</button>
+          <button class="state-btn" onclick="setState(this,'bb-state','middle')">➡️ באמצע (MA20)</button>
+        </div>
+      </div>
+
+      <!-- FIBONACCI -->
+      <div class="ind-block" id="ind-fibonacci-block" style="display:none;">
+        <div class="ind-block-title">📊 Fibonacci Retracement</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+          <button class="state-btn" onclick="setState(this,'fib-level','23.6')">23.6%</button>
+          <button class="state-btn" onclick="setState(this,'fib-level','38.2')">38.2%</button>
+          <button class="state-btn active" onclick="setState(this,'fib-level','50')">50%</button>
+          <button class="state-btn" onclick="setState(this,'fib-level','61.8')">61.8% (Golden)</button>
+          <button class="state-btn" onclick="setState(this,'fib-level','78.6')">78.6%</button>
+          <button class="state-btn" onclick="setState(this,'fib-level','100')">100%</button>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="state-btn active" onclick="setState(this,'fib-action','bounce')">↩️ Bounce מהרמה</button>
+          <button class="state-btn" onclick="setState(this,'fib-action','break')">💥 שבירת הרמה</button>
+          <button class="state-btn" onclick="setState(this,'fib-action','test')">🔍 בודק רמה</button>
+        </div>
+      </div>
+
+      <!-- SUPPORT/RESISTANCE -->
+      <div class="ind-block" id="ind-support_resistance-block" style="display:none;">
+        <div class="ind-block-title">📊 תמיכה / התנגדות</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+          <div class="input-group" style="max-width:130px;">
+            <label>רמת תמיכה ($)</label>
+            <input type="number" id="ind-support" class="ai-input" placeholder="2300" style="min-height:auto;padding:8px 12px;">
+          </div>
+          <div class="input-group" style="max-width:130px;">
+            <label>רמת התנגדות ($)</label>
+            <input type="number" id="ind-resistance" class="ai-input" placeholder="2400" style="min-height:auto;padding:8px 12px;">
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="state-btn active" onclick="setState(this,'sr-pos','near-support')">📍 ליד תמיכה</button>
+          <button class="state-btn" onclick="setState(this,'sr-pos','near-resist')">📍 ליד התנגדות</button>
+          <button class="state-btn" onclick="setState(this,'sr-pos','broke-support')">💥 שבר תמיכה</button>
+          <button class="state-btn" onclick="setState(this,'sr-pos','broke-resist')">💥 שבר התנגדות</button>
+        </div>
+      </div>
+
+      <!-- STOCHASTIC -->
+      <div class="ind-block" id="ind-stochastic-block" style="display:none;">
+        <div class="ind-block-title">📊 Stochastic</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="state-btn active" onclick="setState(this,'stoch-state','ob')">🔴 Overbought (>80)</button>
+          <button class="state-btn" onclick="setState(this,'stoch-state','os')">🟢 Oversold (<20)</button>
+          <button class="state-btn" onclick="setState(this,'stoch-state','cross-bull')">⬆️ חצייה עולה</button>
+          <button class="state-btn" onclick="setState(this,'stoch-state','cross-bear')">⬇️ חצייה יורדת</button>
+        </div>
+      </div>
+
+      <!-- ATR -->
+      <div class="ind-block" id="ind-atr-block" style="display:none;">
+        <div class="ind-block-title">📊 ATR (טווח תנודה ממוצע)</div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div class="input-group" style="max-width:130px;">
+            <label>ערך ATR</label>
+            <input type="number" id="ind-atr-val" class="ai-input" placeholder="15.5" step="0.1" style="min-height:auto;padding:8px 12px;">
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="state-btn active" onclick="setState(this,'atr-state','high')">🔥 גבוה (תנודתיות גבוהה)</button>
+            <button class="state-btn" onclick="setState(this,'atr-state','low')">😴 נמוך (שוק רגוע)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VOLUME -->
+      <div class="ind-block" id="ind-volume-block" style="display:none;">
+        <div class="ind-block-title">📊 Volume</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="state-btn active" onclick="setState(this,'vol-state','high')">🔊 גבוה מהממוצע</button>
+          <button class="state-btn" onclick="setState(this,'vol-state','low')">🔇 נמוך מהממוצע</button>
+          <button class="state-btn" onclick="setState(this,'vol-state','spike')">💥 Spike חד</button>
+          <button class="state-btn" onclick="setState(this,'vol-state','declining')">📉 יורד בהדרגה</button>
+        </div>
+      </div>
+
+      <!-- ICHIMOKU -->
+      <div class="ind-block" id="ind-ichimoku-block" style="display:none;">
+        <div class="ind-block-title">📊 Ichimoku Cloud</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="state-btn active" onclick="setState(this,'ichi-pos','above')">☁️ מחיר מעל ענן (Bullish)</button>
+          <button class="state-btn" onclick="setState(this,'ichi-pos','below')">☁️ מחיר מתחת ענן (Bearish)</button>
+          <button class="state-btn" onclick="setState(this,'ichi-pos','inside')">🌫️ מחיר בתוך ענן</button>
+          <button class="state-btn" onclick="setState(this,'ichi-pos','tk-bull')">⬆️ TK Cross עולה</button>
+          <button class="state-btn" onclick="setState(this,'ichi-pos','tk-bear')">⬇️ TK Cross יורד</button>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <button class="btn" onclick="analyzeCandles()">🕯️ נתח נרות ואינדיקטורים</button>
+    </div>
+
+    <div id="candles-loading" style="display:none">
+      <div class="loading"><div class="spinner"></div>מנתח דפוסי נרות...</div>
+    </div>
+    <div class="ai-response" id="candles-result"></div>
+  </div>
+
+  <!-- ===== TAB 3: PROFIT CALCULATOR ===== -->
+  <div class="tab-panel fade-up" id="tab-profit">
+    <div class="card">
+      <div class="card-title"><span class="icon">💰</span> מחשבון רווח יומי בזהב</div>
+
+      <div class="highlight-box">
+        מחשב אחוזי רווח/הפסד יומי על בסיס מחיר הזהב הנוכחי, גודל הפוזיציה וסוג החשבון שלך.
+      </div>
+
+      <div class="calc-row">
+        <div class="input-group">
+          <label>🏦 גודל חשבון ($)</label>
+          <input type="number" id="account-size" placeholder="10,000" value="10000" oninput="calcProfit()">
+        </div>
+        <div class="input-group">
+          <label>📊 גודל לוט</label>
+          <input type="number" id="lot-size" placeholder="0.1" value="0.1" step="0.01" oninput="calcProfit()">
+        </div>
+      </div>
+
+      <div class="calc-row">
+        <div class="input-group">
+          <label>💵 מחיר כניסה (XAU/USD)</label>
+          <input type="number" id="entry-price" placeholder="הכנס מחיר" oninput="calcProfit()">
+        </div>
+        <div class="input-group">
+          <label>🎯 מחיר יעד / סגירה</label>
+          <input type="number" id="exit-price" placeholder="הכנס יעד" oninput="calcProfit()">
+        </div>
+      </div>
+
+      <div class="calc-row">
+        <div class="input-group">
+          <label>⚠️ Stop Loss (פיפס)</label>
+          <input type="number" id="stop-loss-pips" placeholder="30" oninput="calcProfit()">
+        </div>
+        <div class="input-group">
+          <label>🔢 מינוף</label>
+          <select id="leverage" onchange="calcProfit()">
+            <option value="100">1:100</option>
+            <option value="200">1:200</option>
+            <option value="500">1:500</option>
+            <option value="50">1:50</option>
+            <option value="30">1:30</option>
+            <option value="10">1:10</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-pink" onclick="fetchAndCalc()">⚡ חשב עם מחיר חי</button>
+      &nbsp;
+      <button class="btn btn-outline" onclick="calcProfit()">🧮 חשב ידנית</button>
+
+      <div class="profit-result" id="profit-result">
+        <div class="pct" id="profit-pct">0%</div>
+        <div class="label" id="profit-label">רווח / הפסד</div>
+        <div class="details" id="profit-details"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🎯</span> ניתוח AI לפוזיציה</div>
+      <div class="input-group" style="margin-bottom:14px;">
+        <label>פרטי העסקה לניתוח</label>
+        <textarea class="ai-input" id="position-desc" placeholder="לדוגמה: רוצה להיכנס Buy ב-2,350, יעד 2,400, SL ב-2,320, חשבון $5,000, לוט 0.1..." rows="4"></textarea>
+      </div>
+      <button class="btn" onclick="analyzePosition()">🎯 האם הפוזיציה כדאית?</button>
+      <div id="position-loading" style="display:none">
+        <div class="loading"><div class="spinner"></div>מחשב יחס סיכון/תגמול...</div>
+      </div>
+      <div class="ai-response" id="position-result"></div>
+    </div>
+  </div>
+
+  <!-- ===== TAB 4: NEWS & RECOMMENDATIONS ===== -->
+  <div class="tab-panel fade-up" id="tab-news">
+
+    <!-- LIVE RSS NEWS -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📡</span> חדשות זהב חיות</div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+        <div class="section-label" style="margin-bottom:0;">מקור:</div>
+        <button class="tf-btn active" onclick="setNewsSource(this,'kitco')" id="src-kitco">🥇 Kitco</button>
+        <button class="tf-btn" onclick="setNewsSource(this,'investing')" id="src-investing">📊 Investing</button>
+        <button class="tf-btn" onclick="setNewsSource(this,'reuters')" id="src-reuters">📰 Reuters</button>
+        <button class="tf-btn" onclick="setNewsSource(this,'marketwatch')" id="src-marketwatch">📈 MarketWatch</button>
+        <button class="btn btn-outline" style="padding:5px 14px; font-size:12px; margin-right:auto;" onclick="loadNews()">🔄 רענן</button>
+      </div>
+      <div id="rss-loading" style="display:none">
+        <div class="loading"><div class="spinner"></div>טוען חדשות זהב...</div>
+      </div>
+      <div id="rss-error" style="display:none; color:#FF6B6B; font-size:13px; padding:10px 0;"></div>
+      <div id="news-feed"></div>
+    </div>
+
+    <!-- MARKET ANALYSIS via Claude -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🧠</span> ניתוח שוק עם AI</div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap:8px; margin-bottom:12px;">
+        <label class="factor-check"><input type="checkbox" id="cb-fed" checked> 🏦 Fed / ריבית</label>
+        <label class="factor-check"><input type="checkbox" id="cb-dollar" checked> 💵 דולר (DXY)</label>
+        <label class="factor-check"><input type="checkbox" id="cb-geopolitic"> 🌍 גיאופוליטיקה</label>
+        <label class="factor-check"><input type="checkbox" id="cb-inflation" checked> 📈 אינפלציה / CPI</label>
+        <label class="factor-check"><input type="checkbox" id="cb-cot"> 🏛️ COT (מוסדיים)</label>
+        <label class="factor-check"><input type="checkbox" id="cb-bonds"> 📊 אג"ח / תשואות</label>
+      </div>
+      <div class="input-group" style="margin-bottom:12px;">
+        <label>שאלה ספציפית (אופציונלי)</label>
+        <textarea class="ai-input" id="news-query" placeholder="לדוגמה: האם זמן טוב להיכנס Buy בזהב השבוע?" rows="2"></textarea>
+      </div>
+      <button class="btn" onclick="getNewsAnalysis()">📡 קבל ניתוח שוק</button>
+      <div id="news-loading" style="display:none">
+        <div class="loading"><div class="spinner"></div>מנתח נתוני שוק...</div>
+      </div>
+      <div class="ai-response" id="news-result"></div>
+    </div>
+
+    <!-- ECONOMIC CALENDAR -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📆</span> לוח אירועים כלכליים</div>
+      <button class="btn btn-outline" onclick="getEconomicCalendar()">📆 הצג לוח כלכלי</button>
+      <div id="calendar-loading" style="display:none">
+        <div class="loading"><div class="spinner"></div>מביא אירועים קרובים...</div>
+      </div>
+      <div class="ai-response" id="calendar-result"></div>
+    </div>
+  </div>
+
+  <!-- ===== TAB 5: TRADING COACH (OFFLINE) ===== -->
+  <div class="tab-panel fade-up" id="tab-coach">
+
+    <!-- QUICK TOPICS -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🧠</span> מאמן מסחר — בסיס ידע מקומי</div>
+      <div class="highlight-box" style="margin-bottom:14px;">
+        💡 המאמן פועל <strong>ללא אינטרנט</strong> — בסיס ידע מקצועי מובנה בתוכנה. בחר נושא או הקלד שאלה חופשית.
+      </div>
+
+      <div class="section-label" style="margin-bottom:8px;">נושאים מהירים</div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap:8px; margin-bottom:16px;">
+        <button class="topic-btn" onclick="coachTopic('rr')">⚖️ יחס סיכון/תגמול</button>
+        <button class="topic-btn" onclick="coachTopic('lotsize')">📦 גודל לוט נכון</button>
+        <button class="topic-btn" onclick="coachTopic('sl_tp')">🎯 קביעת SL ו-TP</button>
+        <button class="topic-btn" onclick="coachTopic('psychology')">🧠 פסיכולוגיית מסחר</button>
+        <button class="topic-btn" onclick="coachTopic('doji_signal')">➕ Doji — פירוש</button>
+        <button class="topic-btn" onclick="coachTopic('trend_follow')">📈 מסחר עם מגמה</button>
+        <button class="topic-btn" onclick="coachTopic('breakout')">💥 מסחר פריצות</button>
+        <button class="topic-btn" onclick="coachTopic('session')">🕐 סשן לונדון/ניו יורק</button>
+        <button class="topic-btn" onclick="coachTopic('news_trade')">📰 מסחר על חדשות</button>
+        <button class="topic-btn" onclick="coachTopic('overtrading')">⚠️ אוברטריידינג</button>
+        <button class="topic-btn" onclick="coachTopic('gold_drivers')">🥇 מה מזיז את הזהב</button>
+        <button class="topic-btn" onclick="coachTopic('martingale')">❌ מרטינגל — סכנות</button>
+      </div>
+
+      <!-- RULE CHECKER -->
+      <div class="section-label" style="margin-bottom:8px;">בדיקת עסקה — חוקי מסחר</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+        <div class="input-group">
+          <label>כיוון</label>
+          <select id="rc-dir" class="ai-input" style="min-height:auto; padding:8px 12px;">
+            <option value="buy">BUY (קנייה)</option>
+            <option value="sell">SELL (מכירה)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>טיים-פריים</label>
+          <select id="rc-tf" class="ai-input" style="min-height:auto; padding:8px 12px;">
+            <option>M5</option><option>M15</option><option>M30</option>
+            <option selected>H1</option><option>H4</option><option>D1</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>כניסה $</label>
+          <input type="number" id="rc-entry" class="ai-input" placeholder="2350">
+        </div>
+        <div class="input-group">
+          <label>SL $</label>
+          <input type="number" id="rc-sl" class="ai-input" placeholder="2330">
+        </div>
+        <div class="input-group">
+          <label>TP $</label>
+          <input type="number" id="rc-tp" class="ai-input" placeholder="2400">
+        </div>
+        <div class="input-group">
+          <label>% סיכון מהחשבון</label>
+          <input type="number" id="rc-risk" class="ai-input" placeholder="1" value="1" step="0.5">
+        </div>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label class="factor-check"><input type="checkbox" id="rc-trend"> מסחר בכיוון המגמה הראשית</label>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label class="factor-check"><input type="checkbox" id="rc-confirm"> יש אישור מ-2+ אינדיקטורים</label>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label class="factor-check"><input type="checkbox" id="rc-session"> אני בסשן פעיל (לונדון/ניו יורק)</label>
+      </div>
+      <button class="btn btn-pink" onclick="checkTradeRules()">✅ בדוק את העסקה</button>
+
+      <div id="rule-result" style="display:none; margin-top:16px;"></div>
+    </div>
+
+    <!-- FREE CHAT (offline) -->
+    <div class="card">
+      <div class="card-title"><span class="icon">💬</span> שאל את המאמן</div>
+      <div id="coach-chat" style="max-height:380px; overflow-y:auto; margin-bottom:14px; padding-left:6px;">
+        <div class="coach-msg-ai">
+          <div class="msg-label">🧠 מאמן</div>
+          שלום! אני מאמן המסחר שלך בזהב — פועל לחלוטין ללא אינטרנט.<br><br>
+          אני יכול לענות על שאלות לגבי: <strong>ניתוח טכני • ניהול סיכון • פסיכולוגיה • נרות יפניים • אסטרטגיות • זהב ספציפית</strong>.<br><br>
+          כתוב שאלה חופשית 👇
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:flex-end;">
+        <textarea class="ai-input" id="coach-input" placeholder="שאל שאלה..." rows="2" onkeydown="handleCoachKey(event)" style="flex:1;"></textarea>
+        <button class="btn" onclick="sendOfflineCoach()" style="flex-shrink:0;">שלח</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ===== STATE =====
+let uploadedFiles = [];
+let analysisTypes = ['failures','improvements'];
+let selectedCandles = [];
+let selectedIndicators = [];
+let currentTF = 'H1';
+
+// ===== TAB SWITCHING =====
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ===== GOLD PRICE — multi-source, no invented prices =====
+async function fetchGoldPrice() {
+  const badge = document.getElementById('price-badge');
+  badge.textContent = '⟳ טוען...';
+
+  // Sources to try in order — all free, no API key
+  const sources = [
+    // Yahoo Finance — GC=F gold futures
+    async () => {
+      const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?interval=1m&range=1d', { signal: AbortSignal.timeout(6000) });
+      const d = await r.json();
+      const p = d?.chart?.result?.[0]?.meta?.regularMarketPrice;
+      if (p && p > 1000) return p;
+    },
+    // metals.live
+    async () => {
+      const r = await fetch('https://api.metals.live/v1/spot/gold', { signal: AbortSignal.timeout(6000) });
+      const d = await r.json();
+      const p = Array.isArray(d) ? d[0]?.price : d?.price;
+      if (p && p > 1000) return p;
+    },
+    // allorigins proxy → Yahoo
+    async () => {
+      const target = 'https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?interval=1m&range=1d';
+      const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(target)}`, { signal: AbortSignal.timeout(8000) });
+      const d = await r.json();
+      const inner = JSON.parse(d.contents);
+      const p = inner?.chart?.result?.[0]?.meta?.regularMarketPrice;
+      if (p && p > 1000) return p;
+    },
+  ];
+
+  for (const src of sources) {
+    try {
+      const price = await src();
+      if (price) {
+        badge.textContent = `⚡ XAU/USD $${parseFloat(price).toFixed(2)}`;
+        badge.dataset.price = price;
+        return price;
+      }
+    } catch {}
+  }
+
+  // All failed — show nothing invented
+  badge.textContent = '⚠️ לחץ לרענון';
+  badge.title = 'לא ניתן לטעון מחיר חי — הכנס ידנית';
+  return null;
+}
+
+async function fetchAndCalc() {
+  const price = await fetchGoldPrice();
+  if (price) {
+    document.getElementById('entry-price').value = parseFloat(price).toFixed(2);
+  } else {
+    alert('לא הצלחנו לטעון מחיר חי. אנא הכנס את המחיר ידנית.');
+  }
+  calcProfit();
+}
+
+// ===== PROFIT CALCULATOR =====
+function calcProfit() {
+  const account = parseFloat(document.getElementById('account-size').value) || 0;
+  const lot = parseFloat(document.getElementById('lot-size').value) || 0;
+  const entry = parseFloat(document.getElementById('entry-price').value) || 0;
+  const exit = parseFloat(document.getElementById('exit-price').value) || 0;
+  const slPips = parseFloat(document.getElementById('stop-loss-pips').value) || 0;
+  const leverage = parseFloat(document.getElementById('leverage').value) || 100;
+
+  if (!account || !lot || !entry) return;
+
+  // Gold: 1 lot = 100 oz, pip value ~$1 per 0.1 pip for standard lot
+  const contractSize = 100; // oz per lot
+  const priceDiff = exit - entry;
+  const profitDollar = priceDiff * contractSize * lot;
+  const profitPct = account > 0 ? (profitDollar / account) * 100 : 0;
+
+  const slDollar = slPips > 0 ? (slPips / 10) * contractSize * lot : null;
+  const rr = slDollar ? Math.abs(profitDollar / slDollar) : null;
+  const margin = (entry * contractSize * lot) / leverage;
+
+  const el = document.getElementById('profit-result');
+  const pctEl = document.getElementById('profit-pct');
+  const labelEl = document.getElementById('profit-label');
+  const detailsEl = document.getElementById('profit-details');
+
+  el.classList.add('visible');
+  pctEl.textContent = (profitPct >= 0 ? '+' : '') + profitPct.toFixed(2) + '%';
+  pctEl.className = 'pct ' + (profitPct < 0 ? 'negative' : '');
+  labelEl.textContent = profitPct >= 0 ? '✅ רווח צפוי' : '⚠️ הפסד צפוי';
+
+  let html = `
+    <div class="detail-row"><span>רווח/הפסד $</span><span style="color:${profitDollar>=0?'#4CC44C':'#FF6B6B'}">${profitDollar >= 0 ? '+' : ''}$${profitDollar.toFixed(2)}</span></div>
+    <div class="detail-row"><span>מרג'ין נדרש</span><span>$${margin.toFixed(0)}</span></div>
+    <div class="detail-row"><span>גודל חוזה</span><span>${(contractSize * lot).toFixed(1)} oz</span></div>
+  `;
+  if (rr !== null) {
+    html += `<div class="detail-row"><span>יחס סיכון/תגמול</span><span style="color:${rr>=2?'#4CC44C':rr>=1?'var(--gold)':'#FF6B6B'}">${rr >= 0 ? '1:' + rr.toFixed(2) : 'N/A'}</span></div>`;
+    html += `<div class="detail-row"><span>הפסד מקסימלי (SL)</span><span style="color:#FF6B6B">-$${slDollar.toFixed(2)} (${((slDollar/account)*100).toFixed(2)}%)</span></div>`;
+  }
+  detailsEl.innerHTML = html;
+}
+
+// ===== FILE HANDLING =====
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.add('dragover');
+}
+
+function handleDragLeave() {
+  document.getElementById('upload-zone').classList.remove('dragover');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('dragover');
+  const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
+  addFiles(files);
+}
+
+function handleFiles(e) {
+  addFiles(Array.from(e.target.files));
+}
+
+function addFiles(files) {
+  files.forEach(f => { if (!uploadedFiles.find(x => x.name === f.name)) uploadedFiles.push(f); });
+  renderFileList();
+  document.getElementById('analysis-options').style.display = uploadedFiles.length ? 'block' : 'none';
+}
+
+function removeFile(name) {
+  uploadedFiles = uploadedFiles.filter(f => f.name !== name);
+  renderFileList();
+  document.getElementById('analysis-options').style.display = uploadedFiles.length ? 'block' : 'none';
+}
+
+function renderFileList() {
+  const list = document.getElementById('file-list');
+  list.innerHTML = uploadedFiles.map(f => `
+    <div class="file-item">
+      <span class="file-icon">📄</span>
+      <span class="file-name">${f.name}</span>
+      <span class="file-size">${(f.size/1024).toFixed(0)} KB</span>
+      <button class="remove-btn" onclick="removeFile('${f.name}')">✕</button>
+    </div>
+  `).join('');
+}
+
+// ===== SELECTION TOGGLES =====
+function toggleAnalysisType(el, type) {
+  el.classList.toggle('selected');
+  if (el.classList.contains('selected')) analysisTypes.push(type);
+  else analysisTypes = analysisTypes.filter(t => t !== type);
+}
+
+function toggleCandle(el, name) {
+  el.classList.toggle('selected');
+  if (el.classList.contains('selected')) selectedCandles.push(name);
+  else selectedCandles = selectedCandles.filter(c => c !== name);
+}
+
+function toggleIndicator(el, name) {
+  el.classList.toggle('selected');
+  const block = document.getElementById(`ind-${name}-block`);
+  if (block) block.style.display = el.classList.contains('selected') ? 'block' : 'none';
+  if (el.classList.contains('selected')) selectedIndicators.push(name);
+  else selectedIndicators = selectedIndicators.filter(i => i !== name);
+}
+
+// Trend selection (single-select)
+let currentTrend = 'up';
+function setTrend(btn, val) {
+  document.querySelectorAll('.trend-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentTrend = val;
+}
+
+// State buttons (group by data-group — single select per group)
+const stateValues = {};
+function setState(btn, group, val) {
+  // deactivate siblings in same group
+  document.querySelectorAll(`[onclick*="'${group}'"]`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  stateValues[group] = val;
+}
+
+function setTF(el, tf) {
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentTF = tf;
+}
+
+// ===== AI API CALL =====
+async function callClaude(prompt, systemPrompt = '') {
+  const messages = [{ role: 'user', content: prompt }];
+  const body = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    messages
+  };
+  if (systemPrompt) body.system = systemPrompt;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await response.json();
+  const text = data.content?.map(b => b.text || '').join('') || '';
+  if (!text) throw new Error(data.error?.message || 'No response');
+  return text;
+}
+
+async function callClaudeWithHistory(history, systemPrompt = '') {
+  const body = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    messages: history
+  };
+  if (systemPrompt) body.system = systemPrompt;
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await response.json();
+  return data.content?.map(b => b.text || '').join('') || '';
+}
+
+// ===== PDF ANALYSIS =====
+async function analyzePDF() {
+  if (!uploadedFiles.length) return;
+  const btn = document.getElementById('analyze-btn');
+  const loading = document.getElementById('pdf-loading');
+  const result = document.getElementById('pdf-result');
+  btn.disabled = true;
+  loading.style.display = 'block';
+  result.classList.remove('visible');
+
+  // Read PDFs as base64
+  const pdfData = await Promise.all(uploadedFiles.map(f => new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = () => res({ name: f.name, base64: reader.result.split(',')[1] });
+    reader.onerror = rej;
+    reader.readAsDataURL(f);
+  })));
+
+  const context = document.getElementById('pdf-context').value;
+  const types = analysisTypes.join(', ');
+
+  const typeLabels = {
+    failures: 'כשלים בעסקאות',
+    improvements: 'המלצות לשיפור',
+    psychology: 'ניתוח פסיכולוגי',
+    risk: 'ניהול סיכון',
+    timing: 'תזמון כניסות/יציאות',
+    pattern: 'דפוסים חוזרים'
+  };
+
+  const typesHeb = analysisTypes.map(t => typeLabels[t] || t).join(', ');
+
+  const system = `אתה מנתח מסחר מקצועי המתמחה בזהב (XAU/USD). 
+אתה מנתח דו"חות מסחר ומזהה כשלים, הזדמנויות ודרכים לשיפור.
+תמיד עונה בעברית. השתמש ב-✅ לדברים טובים, ❌ לכשלים, ⚠️ לאזהרות, 💡 לטיפים.`;
+
+  let prompt = `נתח את קבצי המסחר הבאים (${pdfData.map(p => p.name).join(', ')}).\n\nתחומי ניתוח מבוקשים: ${typesHeb}.\n`;
+  if (context) prompt += `\nהקשר נוסף: ${context}\n`;
+  prompt += `\nספק ניתוח מעמיק ומעשי. אם אינך יכול לקרוא את תוכן ה-PDF ישירות, בקש מהמשתמש להדביק את התוכן כטקסט, ותן הנחיות כלליות מקיפות לניתוח מסחר בזהב.`;
+
+  // Send with PDF documents
+  try {
+    const messages = [{
+      role: 'user',
+      content: [
+        ...pdfData.map(pdf => ({
+          type: 'document',
+          source: { type: 'base64', media_type: 'application/pdf', data: pdf.base64 }
+        })),
+        { type: 'text', text: prompt }
+      ]
+    }];
+
+    const body = { model: 'claude-sonnet-4-20250514', max_tokens: 1000, system, messages };
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const data = await response.json();
+    const text = data.content?.map(b => b.text || '').join('') || '';
+    showResult('pdf-result', text || 'לא התקבלה תשובה מה-AI.');
+  } catch (err) {
+    showResult('pdf-result', '❌ שגיאה בניתוח: ' + err.message);
+  }
+
+  loading.style.display = 'none';
+  btn.disabled = false;
+}
+
+// ===== CANDLE ANALYSIS =====
+async function analyzeCandles() {
+  const loading = document.getElementById('candles-loading');
+
+  if (!selectedCandles.length && !selectedIndicators.length) {
+    alert('אנא בחר לפחות נר אחד או אינדיקטור אחד');
+    return;
+  }
+
+  loading.style.display = 'block';
+  document.getElementById('candles-result').classList.remove('visible');
+
+  const candleNames = {
+    doji:'Doji', hanging_man:'Hanging Man', hammer:'Hammer',
+    shooting_star:'Shooting Star', engulfing_bull:'Bullish Engulfing',
+    engulfing_bear:'Bearish Engulfing', morning_star:'Morning Star',
+    evening_star:'Evening Star', pin_bar:'Pin Bar', inside_bar:'Inside Bar',
+    three_soldiers:'Three White Soldiers', three_crows:'Three Black Crows',
+    marubozu:'Marubozu', tweezer:'Tweezer Tops/Bottoms', harami:'Harami'
+  };
+
+  const trendLabels = { up:'עלייה', down:'ירידה', range:'Range/ניטרלי' };
+
+  // Build structured data string
+  const price = document.getElementById('ind-price').value;
+  let dataLines = [];
+  if (price) dataLines.push(`מחיר נוכחי: $${price}`);
+  dataLines.push(`מגמה ראשית: ${trendLabels[currentTrend] || currentTrend}`);
+  dataLines.push(`טיים-פריים: ${currentTF}`);
+
+  if (selectedCandles.length)
+    dataLines.push(`דפוסי נרות: ${selectedCandles.map(c => candleNames[c]||c).join(', ')}`);
+
+  // RSI
+  if (selectedIndicators.includes('rsi')) {
+    const v = document.getElementById('ind-rsi-val')?.value;
+    const s = stateValues['rsi-state'] || 'bull';
+    const sLabel = {bull:'עולה',bear:'יורד',ob:'Overbought (>70)',os:'Oversold (<30)'}[s]||s;
+    dataLines.push(`RSI: ${v ? `ערך ${v}` : ''} — ${sLabel}`);
+  }
+
+  // MACD
+  if (selectedIndicators.includes('macd')) {
+    const s = stateValues['macd-state'] || 'positive';
+    const sLabel = {positive:'חיובי מעל אפס', negative:'שלילי מתחת אפס','cross-bull':'חצה כלפי מעלה','cross-bear':'חצה כלפי מטה','diverge-bull':'Bullish Divergence','diverge-bear':'Bearish Divergence'}[s]||s;
+    dataLines.push(`MACD: ${sLabel}`);
+  }
+
+  // EMA
+  if (selectedIndicators.includes('ema')) {
+    const pos = stateValues['ema-pos'] || 'above';
+    const fast = document.getElementById('ind-ema-fast')?.value || '20';
+    const slow = document.getElementById('ind-ema-slow')?.value || '50';
+    const posLabel = {above:`מחיר מעל EMA${fast}/EMA${slow}`,below:`מחיר מתחת EMA${fast}/EMA${slow}`,'cross-bull':'Golden Cross — EMA מהיר חצה EMA איטי כלפי מעלה','cross-bear':'Death Cross — EMA מהיר חצה EMA איטי כלפי מטה'}[pos]||pos;
+    dataLines.push(`EMA (${fast}/${slow}): ${posLabel}`);
+  }
+
+  // Bollinger
+  if (selectedIndicators.includes('bollinger')) {
+    const s = stateValues['bb-state'] || 'upper';
+    const sLabel = {upper:'נגע בפס עליון',lower:'נגע בפס תחתון',squeeze:'Squeeze — פסים צרים, פריצה צפויה',expansion:'התרחבות — תנודתיות עולה',middle:'מחיר ב-MA20 האמצעי'}[s]||s;
+    dataLines.push(`Bollinger Bands: ${sLabel}`);
+  }
+
+  // Fibonacci
+  if (selectedIndicators.includes('fibonacci')) {
+    const lvl = stateValues['fib-level'] || '50';
+    const act = stateValues['fib-action'] || 'bounce';
+    const actLabel = {bounce:'Bounce — נדד מהרמה',break:'שבירת הרמה — מומנטום חזק',test:'בוחן את הרמה'}[act]||act;
+    dataLines.push(`Fibonacci: רמת ${lvl}% — ${actLabel}`);
+  }
+
+  // S&R
+  if (selectedIndicators.includes('support_resistance')) {
+    const sup = document.getElementById('ind-support')?.value;
+    const res = document.getElementById('ind-resistance')?.value;
+    const pos = stateValues['sr-pos'] || 'near-support';
+    const posLabel = {'near-support':'ליד תמיכה','near-resist':'ליד התנגדות','broke-support':'שבר תמיכה (Bearish)','broke-resist':'שבר התנגדות (Bullish)'}[pos]||pos;
+    dataLines.push(`תמיכה/התנגדות: ${sup?`תמיכה $${sup}`:''}${res?` | התנגדות $${res}`:''}${posLabel?` — ${posLabel}`:''}`);
+  }
+
+  // Stochastic
+  if (selectedIndicators.includes('stochastic')) {
+    const s = stateValues['stoch-state'] || 'ob';
+    const sLabel = {ob:'Overbought (>80)',os:'Oversold (<20)','cross-bull':'חצייה עולה — Buy signal','cross-bear':'חצייה יורדת — Sell signal'}[s]||s;
+    dataLines.push(`Stochastic: ${sLabel}`);
+  }
+
+  // ATR
+  if (selectedIndicators.includes('atr')) {
+    const v = document.getElementById('ind-atr-val')?.value;
+    const s = stateValues['atr-state'] || 'high';
+    const sLabel = {high:'גבוה — תנודתיות גבוהה, SL רחב יותר',low:'נמוך — שוק רגוע, SL הדוק'}[s]||s;
+    dataLines.push(`ATR: ${v?`${v} — `:''}${sLabel}`);
+  }
+
+  // Volume
+  if (selectedIndicators.includes('volume')) {
+    const s = stateValues['vol-state'] || 'high';
+    const sLabel = {high:'גבוה מהממוצע — אישור תנועה',low:'נמוך — תנועה חלשה',spike:'Spike חד — אירוע משמעותי',declining:'יורד — ירידת מומנטום'}[s]||s;
+    dataLines.push(`Volume: ${sLabel}`);
+  }
+
+  // Ichimoku
+  if (selectedIndicators.includes('ichimoku')) {
+    const s = stateValues['ichi-pos'] || 'above';
+    const sLabel = {above:'מחיר מעל הענן — Bullish',below:'מחיר מתחת לענן — Bearish',inside:'מחיר בתוך הענן — לא ברור','tk-bull':'TK Cross עולה — Buy signal','tk-bear':'TK Cross יורד — Sell signal'}[s]||s;
+    dataLines.push(`Ichimoku: ${sLabel}`);
+  }
+
+  const system = `אתה מומחה ניתוח טכני בשוק הזהב (XAU/USD). 
+קיבלת נתוני גרף מדויקים ועליך לנתח אותם ולתת המלצת מסחר ברורה.
+עונה בעברית. השתמש ב-🟢 BUY, 🔴 SELL, 🟡 WAIT. ציין רמות TP ו-SL מדויקות בדולרים.`;
+
+  const prompt = `נתח את נתוני הגרף הבאים ותן המלצת מסחר:
+
+${dataLines.map(l => `• ${l}`).join('\n')}
+
+תן ניתוח מובנה:
+1. 📊 פירוש הנתונים — מה אומרים הנרות והאינדיקטורים יחד
+2. 🎯 המלצה: 🟢 BUY / 🔴 SELL / 🟡 WAIT — עם הסבר
+3. 📍 כניסה מומלצת: $___
+4. 🛑 Stop Loss: $___ (ומדוע)
+5. ✅ Take Profit 1: $___ | Take Profit 2: $___
+6. ⭐ רמת ביטחון: ___/10 ומדוע`;
+
+  try {
+    const text = await callClaude(prompt, system);
+    showResult('candles-result', text);
+  } catch (err) {
+    showResult('candles-result', '❌ שגיאה: ' + err.message);
+  }
+  loading.style.display = 'none';
+}
+
+// ===== POSITION ANALYSIS =====
+async function analyzePosition() {
+  const desc = document.getElementById('position-desc').value;
+  if (!desc) { alert('אנא תאר את הפוזיציה'); return; }
+  const loading = document.getElementById('position-loading');
+  loading.style.display = 'block';
+  document.getElementById('position-result').classList.remove('visible');
+
+  const system = `אתה יועץ מסחר מקצועי בזהב. אתה מחשב יחסי סיכון/תגמול ומייעץ האם לקחת פוזיציה. עונה בעברית.`;
+  const prompt = `נתח את הפוזיציה הבאה בזהב:\n${desc}\n\nחשב:\n- יחס R:R\n- גודל פוזיציה מומלץ\n- האם הפוזיציה כדאית?\n- מה לשנות אם בכלל`;
+
+  try {
+    const text = await callClaude(prompt, system);
+    showResult('position-result', text);
+  } catch (err) {
+    showResult('position-result', '❌ שגיאה: ' + err.message);
+  }
+  loading.style.display = 'none';
+}
+
+// ===== NEWS ANALYSIS =====
+async function getNewsAnalysis() {
+  const loading = document.getElementById('news-loading');
+  const query = document.getElementById('news-query').value;
+  loading.style.display = 'block';
+  document.getElementById('news-result').classList.remove('visible');
+
+  const factors = [];
+  if (document.getElementById('cb-fed').checked) factors.push('ריבית Fed והחלטות מוניטריות');
+  if (document.getElementById('cb-dollar').checked) factors.push('מדד הדולר DXY');
+  if (document.getElementById('cb-geopolitic').checked) factors.push('גיאופוליטיקה ומתחים עולמיים');
+  if (document.getElementById('cb-inflation').checked) factors.push('נתוני אינפלציה CPI/PPI');
+  if (document.getElementById('cb-cot').checked) factors.push('דוחות COT ועמדות מוסדיים');
+
+  const system = `אתה אנליסט שוק המתמחה בזהב. אתה מנתח גורמי מאקרו ומכרו, ונותן המלצות מסחר מבוססות נתונים. עונה בעברית בצורה מובנית ומפורטת.`;
+
+  const prompt = `נתח את שוק הזהב (XAU/USD) כרגע, תוך התמקדות ב:
+${factors.join('\n')}
+
+${query ? `שאלה ספציפית: ${query}` : ''}
+
+תן:
+1. 📊 מצב השוק הנוכחי
+2. 🔑 גורמים מרכזיים המשפיעים על הזהב
+3. 📈 תרחיש עולה וגורמיו
+4. 📉 תרחיש יורד וגורמיו  
+5. 🎯 המלצת כיוון לטווח הקצר/בינוני
+6. ⚠️ סיכונים עיקריים`;
+
+  try {
+    const text = await callClaude(prompt, system);
+    showResult('news-result', text);
+  } catch (err) {
+    showResult('news-result', '❌ שגיאה: ' + err.message);
+  }
+  loading.style.display = 'none';
+}
+
+// ===== ECONOMIC CALENDAR =====
+async function getEconomicCalendar() {
+  const loading = document.getElementById('calendar-loading');
+  loading.style.display = 'block';
+  document.getElementById('calendar-result').classList.remove('visible');
+
+  const system = `אתה מומחה לקורלציות בין אירועים כלכליים לשוק הזהב. עונה בעברית.`;
+  const prompt = `ציין את האירועים הכלכליים החשובים ביותר השבוע/בשבועות הקרובים שמשפיעים על מחיר הזהב, כולל:
+- החלטות ריבית (Fed, ECB)
+- נתוני תעסוקה (NFP)
+- נתוני אינפלציה (CPI, PPI)
+- נתוני GDP
+- נאומי בנקאים מרכזיים
+עבור כל אירוע: פוטנציאל השפעה על זהב (⬆️/⬇️) והסבר קצר.`;
+
+  try {
+    const text = await callClaude(prompt, system);
+    showResult('calendar-result', text);
+  } catch (err) {
+    showResult('calendar-result', '❌ שגיאה: ' + err.message);
+  }
+  loading.style.display = 'none';
+}
+
+// ===== OFFLINE TRADING COACH ENGINE =====
+
+const KNOWLEDGE_BASE = {
+  rr: `⚖️ יחס סיכון/תגמול (R:R)
+
+כלל הברזל: לעולם אל תיכנס לעסקה עם R:R נמוך מ-1:2.
+
+📌 איך מחשבים:
+• R:R = מרחק TP ÷ מרחק SL
+• דוגמה: כניסה 2350, SL 2330, TP 2400
+  → סיכון: 20$ | תגמול: 50$ | R:R = 1:2.5 ✅
+
+🏆 דירוג יחסים:
+• 1:1 → ❌ לא כדאי (צריך לנצח 60%+ לרווח)
+• 1:2 → ✅ מינימום מקובל
+• 1:3 → 💛 טוב מאוד
+• 1:5+ → 🥇 מעולה (נדיר אבל אפשרי)
+
+💡 טיפ: עם R:R של 1:2 אתה יכול לאבד 60% מהעסקאות ועדיין להיות רווחי.`,
+
+  lotsize: `📦 חישוב גודל לוט נכון
+
+נוסחת הזהב:
+גודל לוט = (% סיכון × יתרת חשבון) ÷ (פיפסי SL × ערך פיפ)
+
+📌 כללי אצבע לזהב (XAU/USD):
+• לוט סטנדרט (1.0) = 100 אאונס = ~$10 לכל $1
+• מיני לוט (0.1) = 10 אאונס = ~$1 לכל $1
+• מיקרו לוט (0.01) = 1 אאונס = ~$0.10 לכל $1
+
+📊 דוגמה מעשית:
+חשבון $5,000 | סיכון 1% = $50 | SL 20 פיפס ($2)
+גודל לוט = $50 ÷ $2 = 0.25 לוט
+
+⚠️ כללים:
+• סיכון מקסימלי לעסקה: 1-2% מהחשבון
+• לעולם לא יותר מ-3% בעסקה אחת
+• מתחיל? התחל מ-0.01 לוט`,
+
+  sl_tp: `🎯 קביעת SL ו-TP נכונה
+
+🛑 Stop Loss — איפה לשים:
+• מעבר לרמת תמיכה/התנגדות ברורה
+• מעבר לנר האחרון המשמעותי (High/Low)
+• מחוץ לאזור ה-Swing
+• לא על מספרים עגולים (2350, 2400) — כולם שמים SL שם!
+
+✅ Take Profit — איפה לשים:
+• לפני רמת התנגדות הבאה (לא עליה)
+• לפי יחס R:R המינימלי (1:2)
+• רמות Fibonacci: 1.618, 2.0, 2.618
+• פסיכולוגי: מספרים עגולים כ-TP (2400, 2350)
+
+💡 טיפים:
+• SL ≠ מחיר שבו "אתה טועה" — SL = מחיר שבו הסיטואציה בטלה
+• הזז SL ל-Breakeven ברגע שהעסקה +1R ברווח
+• אל תזיז SL לרעה אף פעם`,
+
+  psychology: `🧠 פסיכולוגיית מסחר — 7 כלים קריטיים
+
+1. 😤 FOMO (פחד להחמיץ)
+לא נכנסת? הפסדת רווח? זה בסדר. תמיד יש עסקה הבאה.
+פתרון: רשימת קריטריונים — אם לא עומד בכולם, לא נכנס.
+
+2. 😰 ניהול הפסדים
+כל סוחר מפסיד. Mark Douglas: "חמשת סחרנים הבאים יכולים כולם להפסיד."
+פתרון: הגדר הפסד מקסימלי יומי (למשל 3%) ועצור.
+
+3. 🤑 תאוות ביצוע
+"הרחקתי את ה-SL כדי לחכות שהמחיר יחזור" — הרוצח הגדול.
+פתרון: הפעל SL פיזי ולא מנטלי. תמיד.
+
+4. 📝 יומן מסחר
+רשום כל עסקה: כניסה, יציאה, סיבה, רגש בכניסה.
+צפה אחת לשבוע — דפוסים יתגלו לבד.
+
+5. 🔄 Revenge Trading
+הפסדת? אל תיכנס מיד לעסקה הבאה מתוך כעס.
+פתרון: הפסקה חובה של שעה לפחות אחרי הפסד.
+
+6. 🎯 מה שבשליטתך
+לא בשליטתך: מחיר, שוק, חדשות.
+בשליטתך: אסטרטגיה, גודל פוזיציה, SL, מינוף.
+
+7. 💤 מנוחה
+עייפות = החלטות רעות. אל תסחר אחרי 6 שעות מסך ברציפות.`,
+
+  doji_signal: `➕ Doji — פירוש מלא
+
+🕯️ מה זה Doji?
+נר שבו מחיר הפתיחה ≈ מחיר הסגירה. הגוף זעיר, הצללים ארוכים.
+מסמל: חוסר החלטה בין קונים ומוכרים.
+
+📌 סוגי Doji:
+• Classic Doji ➕ — שיווי משקל מוחלט
+• Long-Legged Doji 🕹️ — צללים ארוכים מאוד — תנודתיות גבוהה
+• Gravestone Doji ⬆️ — צל עליון ארוך — סימן ירידה
+• Dragonfly Doji ⬇️ — צל תחתון ארוך — סימן עלייה
+
+⚠️ חשוב מאוד:
+Doji בפני עצמו אינו סיגנל. צריך:
+1. הקשר (אחרי מגמה ארוכה = היפוך, באמצע = המשך)
+2. אישור מהנר הבא
+3. אישור מאינדיקטור (RSI, MACD)
+
+✅ איך לסחור:
+• Doji אחרי מגמת עלייה ארוכה → חכה לנר ירידה לאישור → Sell
+• Doji אחרי מגמת ירידה ארוכה → חכה לנר עלייה לאישור → Buy
+• ב-H4/D1 הדוג'י אמין יותר מ-M5`,
+
+  trend_follow: `📈 מסחר עם המגמה — הכלל הראשון
+
+🥇 "The Trend Is Your Friend"
+90% מסוחרים מקצועיים מסחרים עם המגמה. לא נגדה.
+
+🔍 איך מזהים מגמה:
+• עלייה: Higher Highs + Higher Lows (HH, HL)
+• ירידה: Lower Highs + Lower Lows (LH, LL)
+• ניטרלי: Range — פסגות ותחתיות זהות
+
+📊 כלים לזיהוי מגמה:
+• EMA 50/200 — מחיר מעל EMA = עלייה
+• ADX > 25 = מגמה חזקה
+• מגמה על D1 → כיוון, כניסה על H1/H4
+
+🎯 נקודות כניסה אידיאליות עם מגמה:
+• Pullback לרמת תמיכה/EMA
+• Bounce מ-Fibonacci 38.2%, 50%
+• בסיס נר היפוך אחרי correction
+
+💡 זהב (XAU/USD) — מגמות שבועיות/יומיות חזקות יותר מאשר H1`,
+
+  breakout: `💥 מסחר פריצות (Breakout)
+
+📌 מה זה Breakout?
+מחיר פורץ מעבר לרמת תמיכה/התנגדות חשובה עם נפח גבוה.
+
+✅ פריצה אמיתית vs ❌ פייק:
+אמיתית:
+• נר סגירה מעל/מתחת לרמה (לא רק touch)
+• נפח מסחר גבוה
+• retest של הרמה הישנה
+• מגמה תומכת
+
+פייק:
+• נר עם צל ארוך שחוצה ומחזיר
+• נפח נמוך
+• בסוף סשן בשוק רגוע
+
+🎯 איך לסחור:
+שיטה 1 — כניסה מיידית: כניסה בסגירת נר פריצה, SL מתחת לנר
+שיטה 2 — Retest: חכה לחזרה לרמה הישנה, כניסה בבאונס
+
+⏰ זהב: הפריצות הטובות ב-08:30-10:00 EST (פתיחת ניו יורק)`,
+
+  session: `🕐 סשנים — מתי לסחור בזהב
+
+🌍 שלושה סשנים עיקריים:
+
+🗼 לונדון: 08:00-17:00 GMT (10:00-19:00 ישראל)
+• הסשן הכי חשוב לזהב
+• נפח גבוה, תנועות גדולות
+• פריצות רבות
+
+🗽 ניו יורק: 13:00-22:00 GMT (15:00-00:00 ישראל)
+• חפיפה עם לונדון 13:00-17:00 GMT = הכי פעיל!
+• נתונים כלכליים אמריקאים (NFP, CPI)
+• תנועות חדות מאוד
+
+🌏 טוקיו: 00:00-09:00 GMT (02:00-11:00 ישראל)
+• זהב פחות פעיל
+• Range צר יותר
+• מתאים לסוחרי range
+
+⚠️ מה להימנע:
+• 30 דקות לפני/אחרי חדשות גדולות
+• ימי שישי אחה"צ (נזילות נמוכה)
+• פתיחת שבוע (ראשון בלילה) — Gap אפשרי`,
+
+  news_trade: `📰 מסחר על חדשות — זהב
+
+🔑 חדשות שמזיזות את הזהב הכי הרבה:
+
+⬆️ מעלות את הזהב:
+• CPI גבוה מהצפוי (אינפלציה)
+• NFP חלש (פחות משרות)
+• Fed פחות תוקפני
+• מתחים גיאופוליטיים
+• DXY יורד
+
+⬇️ מורידות את הזהב:
+• CPI נמוך מהצפוי
+• NFP חזק מאוד
+• העלאת ריבית פתאומית
+• DXY מתחזק
+• הסכמי שלום/יציבות
+
+📋 כיצד לסחור:
+שיטה בטוחה: חכה 5 דקות אחרי הפרסום — תן לשוק להחליט כיוון
+שיטה אגרסיבית: trade את ה-initial spike — מסוכן, דורש ניסיון
+
+⚠️ לעולם לא:
+• אל תחזיק פוזיציה פתוחה ב-NFP ללא SL הדוק
+• אל תיכנס ב-spread הרחב מיד אחרי הפרסום`,
+
+  overtrading: `⚠️ אוברטריידינג — הרוצח הכי נפוץ
+
+מה זה אוברטריידינג?
+• יותר מדי עסקאות ביום
+• גדלי פוזיציה גדולים מדי
+• כניסה מבלי שיש סיגנל ברור
+• מסחר מתוך שעמום או כעס
+
+🔴 סימנים שאתה עושה אוברטריידינג:
+• פתחת 5+ עסקאות ביום
+• מרגיש שאתה "חייב" להיות בשוק
+• מגדיל פוזיציות אחרי הפסד
+• קשה לך לסגור מסך
+
+✅ הפתרון:
+1. הגבל ל-2-3 עסקאות ביום מקסימום
+2. קבע זמן מסחר קבוע (למשל 09:00-12:00)
+3. הפסד יומי מקסימלי: עצור ב-3% הפסד
+4. לא נכנס אלא יש: מגמה + נר היפוך + אישור
+
+💡 יום ללא עסקה = יום טוב. לא כל יום יש סטאפ.`,
+
+  gold_drivers: `🥇 מה מזיז את מחיר הזהב?
+
+💰 גורמים עיקריים:
+
+1. 📊 מדד הדולר (DXY)
+קורלציה הפוכה: דולר חזק = זהב יורד, דולר חלש = זהב עולה
+זה הקשר החזק ביותר ביומיומי.
+
+2. 🏦 ריבית הפד
+ריבית עולה = זהב יורד (אג"ח מתחרה)
+ריבית יורדת = זהב עולה (חסר תשואה = בסדר)
+
+3. 📈 אינפלציה
+אינפלציה גבוהה = זהב עולה (גדר אינפלציה)
+זו הסיבה ההיסטורית לקיום הזהב.
+
+4. 🌍 גיאופוליטיקה
+מלחמות, מתחים, אי-וודאות = זהב עולה (נכס מקלט)
+שלום/יציבות = פחות דרישה.
+
+5. 🏛️ בנקים מרכזיים
+קניות/מכירות זהב ע"י בנקים מרכזיים (סין, רוסיה)
+דוחות COT מראים עמדות גדולים.
+
+6. 📉 תשואות אג"ח
+תשואות ריאליות שליליות = זהב עולה
+מעקב: Real Yield (תשואה - אינפלציה)
+
+🔁 בדוק תמיד: DXY + תשואות 10Y לפני כל עסקת זהב.`,
+
+  martingale: `❌ מרטינגל — למה זה מסוכן בזהב
+
+מה זה מרטינגל?
+מכפיל גודל פוזיציה אחרי כל הפסד עד שמרוויח.
+הפסדת $10? פתח $20. הפסדת? פתח $40...
+
+🔴 למה זה מסוכן:
+• 6 הפסדים רצופים = חשבון $5,000 → הפסד $3,200
+• 10 הפסדים = פיצוץ מלא של חשבון
+• זהב יכול לנוע נגדך ימים/שבועות ברצף
+• Drawdown יכול להגיע ל-50% לפני היפוך
+
+📉 דוגמה אמיתית:
+$100 → $200 → $400 → $800 → $1,600 → $3,200
+לאחר 6 הפסדים: $6,300 הפסד מ-$5,000 חשבון = פשיטת רגל.
+
+✅ במקום מרטינגל:
+• גודל פוזיציה קבוע (% מהחשבון)
+• הגדל פוזיציה רק כשהחשבון גדל
+• Anti-Martingale: הגדל בניצחון, הקטן בהפסד`
+};
+
+// Keyword matching for free text
+const KEYWORD_MAP = [
+  { keys: ['r:r', 'סיכון תגמול', 'יחס', 'rr', 'ריסק'], topic: 'rr' },
+  { keys: ['לוט', 'lot', 'גודל פוזיציה', 'position size'], topic: 'lotsize' },
+  { keys: ['sl', 'tp', 'stop loss', 'take profit', 'סטופ', 'טייק'], topic: 'sl_tp' },
+  { keys: ['פסיכולוגי', 'רגש', 'פחד', 'fomo', 'revenge', 'כעס', 'דיסיפלין'], topic: 'psychology' },
+  { keys: ['doji', 'דוג׳י', 'דוגי'], topic: 'doji_signal' },
+  { keys: ['מגמה', 'trend', 'ema', 'higher high', 'lower low'], topic: 'trend_follow' },
+  { keys: ['פריצה', 'breakout', 'שבירה', 'support', 'resistance', 'תמיכה', 'התנגדות'], topic: 'breakout' },
+  { keys: ['סשן', 'session', 'לונדון', 'ניו יורק', 'טוקיו', 'שעה', 'מתי לסחור'], topic: 'session' },
+  { keys: ['חדשות', 'nfp', 'cpi', 'news', 'אירוע', 'פרסום'], topic: 'news_trade' },
+  { keys: ['אוברטריידינג', 'הרבה עסקאות', 'יותר מדי', 'שעמום', 'overtrading'], topic: 'overtrading' },
+  { keys: ['מה מזיז', 'דרייברים', 'גורמים', 'דולר', 'dxy', 'ריבית', 'אינפלציה', 'מקלט'], topic: 'gold_drivers' },
+  { keys: ['מרטינגל', 'martingale', 'להכפיל', 'לאחר הפסד'], topic: 'martingale' },
+];
+
+function coachTopic(topic) {
+  const answer = KNOWLEDGE_BASE[topic];
+  if (!answer) return;
+  addCoachMsg('user', '📚 ' + document.querySelector(`[onclick="coachTopic('${topic}')"]`)?.textContent || topic);
+  setTimeout(() => addCoachMsg('ai', answer), 200);
+}
+
+function handleCoachKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendOfflineCoach(); }
+}
+
+function sendOfflineCoach() {
+  const input = document.getElementById('coach-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  addCoachMsg('user', msg);
+  setTimeout(() => {
+    const reply = offlineAnswer(msg);
+    addCoachMsg('ai', reply);
+  }, 300);
+}
+
+function offlineAnswer(msg) {
+  const lower = msg.toLowerCase();
+
+  // Check keyword map
+  for (const entry of KEYWORD_MAP) {
+    if (entry.keys.some(k => lower.includes(k))) {
+      return KNOWLEDGE_BASE[entry.topic];
+    }
+  }
+
+  // Greeting
+  if (['שלום','היי','הי','בוקר','ערב','מה שלומך'].some(k => lower.includes(k))) {
+    return 'שלום! מוכן לעזור 💛 שאל אותי כל שאלה על מסחר בזהב — ניתוח טכני, ניהול סיכון, פסיכולוגיה, נרות יפניים, אסטרטגיות.';
+  }
+
+  // Numbers / specific trade
+  if (lower.match(/\d{4}/)) {
+    const nums = msg.match(/[\d,.]+/g)?.map(n => parseFloat(n.replace(',',''))) || [];
+    if (nums.length >= 2) {
+      const sorted = [...nums].sort((a,b) => a-b);
+      return `🧮 ניתוח מהיר לפי הנתונים:\n\n` +
+        `המחירים שציינת: ${nums.join(' | ')}\n` +
+        `מרווח כולל: ${(sorted[sorted.length-1] - sorted[0]).toFixed(1)} נקודות\n\n` +
+        `💡 לניתוח מלא של הפוזיציה, עבור לטאב 💰 מחשבון רווח ומלא שם את הפרטים — הוא יחשב R:R, מרג'ין ורווח צפוי.\n\n` +
+        `לשאלות על SL/TP הקלד: "איפה לשים SL" | לניהול סיכון הקלד: "גודל לוט"`;
+    }
+  }
+
+  // Buy/Sell question
+  if (['לקנות','למכור','buy','sell','כניסה','להיכנס'].some(k => lower.includes(k))) {
+    return `🎯 לפני כל כניסה — רשימת תנאים:
+
+✅ בדוק שכל אלה נכונים:
+1. יש מגמה ברורה בטיים-פריים עליון (D1/H4)
+2. יש סיגנל נר (Hammer, Engulfing, Pin Bar)
+3. נמצאים ברמת תמיכה/התנגדות חשובה
+4. לפחות 2 אינדיקטורים מאשרים
+5. R:R לפחות 1:2
+6. לא 30 דקות לפני חדשות גדולות
+7. אתה בסשן פעיל (לונדון/NY)
+
+אם כל 7 ✅ — כנס. אם לא — חכה.`;
+  }
+
+  // Default - unknown
+  return `🤔 לא מצאתי תשובה ישירה לשאלה שלך בבסיס הידע.
+
+נסה לשאול על אחד מהנושאים:
+• יחס סיכון/תגמול (R:R)
+• גודל לוט נכון
+• קביעת SL ו-TP
+• פסיכולוגיית מסחר
+• דפוסי נרות (Doji, Hammer...)
+• מסחר עם מגמה
+• פריצות (Breakout)
+• זמן מסחר (סשנים)
+• מסחר על חדשות
+• מה מזיז את הזהב
+• מרטינגל — סכנות
+
+או לחץ על אחד מהכפתורים למעלה 👆`;
+}
+
+function addCoachMsg(role, text) {
+  const container = document.getElementById('coach-chat');
+  const div = document.createElement('div');
+  div.className = role === 'ai' ? 'coach-msg-ai' : 'coach-msg-user';
+  const label = document.createElement('div');
+  label.className = 'msg-label';
+  label.textContent = role === 'ai' ? '🧠 מאמן' : '👤 אתה';
+  div.appendChild(label);
+  const content = document.createElement('div');
+  content.style.whiteSpace = 'pre-wrap';
+  content.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  div.appendChild(content);
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ===== RULE CHECKER =====
+function checkTradeRules() {
+  const dir = document.getElementById('rc-dir').value;
+  const tf = document.getElementById('rc-tf').value;
+  const entry = parseFloat(document.getElementById('rc-entry').value) || 0;
+  const sl = parseFloat(document.getElementById('rc-sl').value) || 0;
+  const tp = parseFloat(document.getElementById('rc-tp').value) || 0;
+  const risk = parseFloat(document.getElementById('rc-risk').value) || 1;
+  const withTrend = document.getElementById('rc-trend').checked;
+  const confirmed = document.getElementById('rc-confirm').checked;
+  const inSession = document.getElementById('rc-session').checked;
+
+  const rules = [];
+  let score = 0;
+  const total = 7;
+
+  // R:R
+  if (entry && sl && tp) {
+    const riskPts = Math.abs(entry - sl);
+    const rewardPts = Math.abs(tp - entry);
+    const rr = rewardPts / riskPts;
+    const ok = rr >= 2;
+    rules.push({ ok, text: `יחס R:R: 1:${rr.toFixed(2)} ${ok ? '✅' : '❌ (מינימום 1:2)'}` });
+    if (ok) score++;
+  } else {
+    rules.push({ ok: false, text: '⚠️ הכנס כניסה, SL ו-TP לחישוב R:R' });
+  }
+
+  // Risk %
+  const riskOk = risk <= 2;
+  rules.push({ ok: riskOk, text: `סיכון לעסקה: ${risk}% ${riskOk ? '✅' : '❌ (מקסימום 2%)'}` });
+  if (riskOk) score++;
+
+  // Trend
+  rules.push({ ok: withTrend, text: `מסחר עם מגמה: ${withTrend ? '✅' : '⚠️ נגד מגמה — סיכון גבוה'}` });
+  if (withTrend) score++;
+
+  // Confirmation
+  rules.push({ ok: confirmed, text: `אישור 2+ אינדיקטורים: ${confirmed ? '✅' : '❌ חסר אישור'}` });
+  if (confirmed) score++;
+
+  // Session
+  rules.push({ ok: inSession, text: `סשן פעיל: ${inSession ? '✅' : '⚠️ נזילות נמוכה אפשרית'}` });
+  if (inSession) score++;
+
+  // TF quality
+  const goodTF = ['H1','H4','D1'].includes(tf);
+  rules.push({ ok: goodTF, text: `טיים-פריים ${tf}: ${goodTF ? '✅ אמין' : '⚠️ נמוך — יותר רעש'}` });
+  if (goodTF) score++;
+
+  // SL direction
+  if (entry && sl) {
+    const slOk = dir === 'buy' ? sl < entry : sl > entry;
+    rules.push({ ok: slOk, text: `כיוון SL: ${slOk ? '✅ נכון' : '❌ SL בכיוון הלא נכון!'}` });
+    if (slOk) score++;
+  }
+
+  const pct = Math.round((score / total) * 100);
+  const verdict = pct >= 85 ? '🟢 עסקה מומלצת' : pct >= 60 ? '🟡 עסקה בסיכון בינוני' : '🔴 לא לבצע עסקה';
+  const barColor = pct >= 85 ? '#4CC44C' : pct >= 60 ? '#C9A84C' : '#FF6B6B';
+
+  const container = document.getElementById('rule-result');
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(201,168,76,0.2); border-radius:10px; padding:16px;">
+      <div style="font-size:16px; font-weight:700; margin-bottom:10px; color:${barColor}">${verdict}</div>
+      <div class="score-bar"><div class="score-fill" style="width:${pct}%; background:${barColor}"></div></div>
+      <div style="font-size:11px; color:var(--text-light); margin-bottom:12px; margin-top:4px;">${score}/${total} קריטריונים עוברים</div>
+      ${rules.map(r => `<div class="rule-row"><span>${r.ok ? '✅' : '❌'}</span><span>${r.text}</span></div>`).join('')}
+    </div>
+  `;
+}
+
+// ===== SHOW RESULT =====
+function showResult(id, text) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.classList.add('visible');
+}
+
+// ===== RSS NEWS =====
+let currentNewsSource = 'kitco';
+
+const RSS_SOURCES = {
+  kitco:      { name: 'Kitco',      url: 'https://www.kitco.com/rss/kitconews.rss' },
+  investing:  { name: 'Investing',  url: 'https://www.investing.com/rss/news_14.rss' },
+  reuters:    { name: 'Reuters',    url: 'https://feeds.reuters.com/reuters/businessNews' },
+  marketwatch:{ name: 'MarketWatch',url: 'https://feeds.content.dowjones.io/public/rss/mw_realestate' }
+};
+
+// CORS-free public proxy options (tries in order)
+const CORS_PROXIES = [
+  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+];
+
+function setNewsSource(btn, source) {
+  document.querySelectorAll('[id^="src-"]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentNewsSource = source;
+  loadNews();
+}
+
+async function fetchRSSWithProxy(rssUrl, proxyIndex = 0) {
+  if (proxyIndex >= CORS_PROXIES.length) throw new Error('כל הפרוקסים נכשלו');
+  const proxyUrl = CORS_PROXIES[proxyIndex](rssUrl);
+  const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  // allorigins returns { contents: '...' }, others return text directly
+  return data.contents || data;
+}
+
+async function loadNews() {
+  const feed = document.getElementById('news-feed');
+  const loading = document.getElementById('rss-loading');
+  const errEl = document.getElementById('rss-error');
+  const src = RSS_SOURCES[currentNewsSource];
+
+  feed.innerHTML = '';
+  errEl.style.display = 'none';
+  loading.style.display = 'block';
+
+  let xmlText = null;
+  let lastErr = '';
+
+  for (let i = 0; i < CORS_PROXIES.length; i++) {
+    try {
+      xmlText = await fetchRSSWithProxy(src.url, i);
+      if (xmlText && xmlText.includes('<item')) break;
+    } catch(e) { lastErr = e.message; xmlText = null; }
+  }
+
+  loading.style.display = 'none';
+
+  if (!xmlText || !xmlText.includes('<item')) {
+    // Fallback: show curated gold news links
+    feed.innerHTML = renderFallbackNews(src.name);
+    errEl.style.display = 'block';
+    errEl.textContent = `⚠️ לא ניתן לטעון RSS ישירות מהדפדפן (${lastErr || 'CORS'}). מוצגים קישורים ישירים:`;
+    return;
+  }
+
+  try {
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(xmlText, 'text/xml');
+    const items = Array.from(xml.querySelectorAll('item')).slice(0, 15);
+
+    if (!items.length) {
+      feed.innerHTML = renderFallbackNews(src.name);
+      return;
+    }
+
+    feed.innerHTML = items.map(item => {
+      const title = item.querySelector('title')?.textContent?.trim() || '';
+      const link  = item.querySelector('link')?.textContent?.trim() || '#';
+      const date  = item.querySelector('pubDate')?.textContent?.trim() || '';
+      const desc  = item.querySelector('description')?.textContent?.replace(/<[^>]*>/g,'').trim().slice(0,120) || '';
+      const dateStr = date ? new Date(date).toLocaleString('he-IL', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
+      return `
+        <div class="news-item">
+          <a href="${link}" target="_blank" rel="noopener">
+            <div class="news-headline">${title}</div>
+          </a>
+          ${desc ? `<div style="font-size:12px; color:var(--fg-mute); margin:4px 0; line-height:1.4;">${desc}...</div>` : ''}
+          <div class="news-meta">
+            <span class="news-source">${src.name}</span>
+            ${dateStr ? `<span>🕐 ${dateStr}</span>` : ''}
+            <a href="${link}" target="_blank" class="news-link">קרא עוד ↗</a>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    feed.innerHTML = renderFallbackNews(src.name);
+  }
+}
+
+function renderFallbackNews(sourceName) {
+  const links = [
+    { title: '🥇 Kitco Gold News — חדשות זהב בזמן אמת', url: 'https://www.kitco.com/news/gold/', en: true },
+    { title: '📊 Investing.com — מחירי זהב ואנליזה', url: 'https://il.investing.com/commodities/gold-news', en: false },
+    { title: '📰 Reuters — חדשות מתכות יקרות', url: 'https://www.reuters.com/business/finance/', en: true },
+    { title: '📈 MarketWatch — זהב ומתכות', url: 'https://www.marketwatch.com/investing/future/gold', en: true },
+    { title: '🔔 FXStreet — ניתוח XAU/USD', url: 'https://www.fxstreet.com/currencies/xauusd', en: true },
+    { title: '🌐 GoldPrice.org — מחיר זהב חי', url: 'https://goldprice.org/', en: true },
+    { title: '📉 CNBC — חדשות זהב ומתכות', url: 'https://www.cnbc.com/gold/', en: true },
+    { title: '🏦 World Gold Council — נתוני מוסדיים', url: 'https://www.gold.org/goldhub/research', en: true },
+  ];
+  return `
+    <div class="highlight-box" style="margin-bottom:12px;">
+      📡 RSS נטען ישירות מהדפדפן — קישורים מהירים לאתרי החדשות:
+    </div>
+    ${links.map(l => `
+      <div class="news-item">
+        <a href="${l.url}" target="_blank" rel="noopener">
+          <div class="news-headline">${l.title}</div>
+        </a>
+        <div class="news-meta">
+          <span class="news-source">${sourceName}</span>
+          <a href="${l.url}" target="_blank" class="news-link">פתח אתר ↗</a>
+        </div>
+      </div>`).join('')}`;
+}
+
+// ===== INIT =====
+window.onload = function() {
+  fetchGoldPrice();
+  loadNews();
+  document.getElementById('entry-price').addEventListener('input', calcProfit);
+  document.getElementById('exit-price').addEventListener('input', calcProfit);
+};
+</script>
+</body>
+</html>
